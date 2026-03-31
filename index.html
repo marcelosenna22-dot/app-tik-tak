@@ -3,95 +3,149 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>App Vídeos - Link Edition</title>
+<title>VideoApp - TikTok Style</title>
 
 <style>
+  /* CONFIGURAÇÕES GERAIS */
   body {
     margin: 0;
     background: #000;
     color: white;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    overflow: hidden;
   }
 
   .screen {
     display: none;
-    padding: 20px;
-    text-align: center;
+    height: 100vh;
+    width: 100vw;
+    position: relative;
   }
 
   .active {
-    display: block;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
   }
 
-  /* Feed estilo TikTok */
+  /* FEED E SCROLL */
   #feed {
     height: 100vh;
+    width: 100%;
     overflow-y: scroll;
     scroll-snap-type: y mandatory;
+    scrollbar-width: none;
   }
+  #feed::-webkit-scrollbar { display: none; }
 
   .video-container {
     height: 100vh;
+    width: 100%;
     scroll-snap-align: start;
     position: relative;
-    background: #111;
+    background: radial-gradient(circle, #1a1a1a 0%, #000 100%);
+    display: flex;
+    align-items: center;
   }
 
   video {
     width: 100%;
     height: 100%;
-    object-fit: contain; /* Ajusta o vídeo sem cortar */
+    object-fit: contain;
   }
 
-  /* Botões e Inputs */
-  button {
-    padding: 12px 20px;
-    margin: 10px 5px;
-    background: #fe2c55; /* Cor estilo TikTok */
-    color: white;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    font-weight: bold;
-  }
-
-  input {
-    padding: 12px;
-    width: 80%;
-    max-width: 300px;
-    border-radius: 5px;
-    border: 1px solid #333;
-    background: #222;
-    color: white;
-    margin-bottom: 10px;
-  }
-
-  /* Curtir */
-  .like-btn {
+  /* INTERFACE DO PLAYER */
+  .video-info {
     position: absolute;
-    right: 20px;
+    bottom: 40px;
+    left: 15px;
+    z-index: 5;
+    pointer-events: none;
+  }
+
+  .video-info h3 { margin: 0; font-size: 16px; font-weight: bold; }
+  .video-info p { margin: 5px 0; font-size: 14px; opacity: 0.8; }
+
+  .side-bar {
+    position: absolute;
+    right: 12px;
     bottom: 120px;
-    font-size: 24px;
-    background: rgba(0,0,0,0.6);
-    padding: 15px;
-    border-radius: 50%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 22px;
+    z-index: 6;
+  }
+
+  .action-item {
+    text-align: center;
     cursor: pointer;
-    transition: transform 0.2s;
   }
 
-  .like-btn:active {
-    transform: scale(1.2);
+  .icon-circle {
+    width: 48px;
+    height: 48px;
+    background: rgba(45, 45, 45, 0.5);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    margin-bottom: 4px;
+    transition: transform 0.1s;
   }
 
+  .icon-circle:active { transform: scale(0.85); }
+  .action-item span { font-size: 12px; font-weight: bold; }
+
+  /* NAVEGAÇÃO SUPERIOR */
   .nav-top {
     position: fixed;
-    top: 10px;
-    left: 0;
-    right: 0;
+    top: 0;
+    width: 100%;
+    padding: 15px 0;
+    background: linear-gradient(to bottom, rgba(0,0,0,0.6), transparent);
     z-index: 10;
     display: flex;
     justify-content: center;
-    gap: 10px;
+    gap: 25px;
+  }
+
+  .nav-top button {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 16px;
+    font-weight: 600;
+    opacity: 0.6;
+    cursor: pointer;
+  }
+
+  .nav-top button.active-btn { opacity: 1; border-bottom: 2px solid white; }
+
+  /* BOTÕES E INPUTS DE LOGIN/UPLOAD */
+  input {
+    padding: 14px;
+    width: 80%;
+    max-width: 320px;
+    background: #222;
+    border: 1px solid #333;
+    color: white;
+    border-radius: 8px;
+    margin-bottom: 12px;
+  }
+
+  .main-btn {
+    background: #fe2c55;
+    color: white;
+    border: none;
+    padding: 14px 40px;
+    border-radius: 4px;
+    font-weight: bold;
+    cursor: pointer;
+    width: 85%;
+    max-width: 320px;
   }
 </style>
 </head>
@@ -99,27 +153,28 @@
 <body>
 
 <div id="loginScreen" class="screen active">
-  <h2 style="margin-top: 50px;">Bem-vindo ao VídeoApp</h2>
-  <input type="email" id="email" placeholder="Seu Email"><br>
-  <input type="password" id="senha" placeholder="Sua Senha"><br>
-  <button onclick="login()">Entrar</button>
-  <button onclick="registrar()" style="background: #444;">Criar Conta</button>
+  <h1 style="margin-bottom: 30px;">VideoApp</h1>
+  <input type="email" id="email" placeholder="Email">
+  <input type="password" id="senha" placeholder="Senha">
+  <button class="main-btn" onclick="login()">Entrar</button>
+  <button onclick="registrar()" style="background:none; border:none; color:gray; margin-top:15px;">Não tem conta? Criar conta</button>
 </div>
 
-<div id="feedScreen" class="screen" style="padding: 0;">
+<div id="feedScreen" class="screen">
   <div class="nav-top">
-    <button onclick="mostrarUpload()">+ Enviar</button>
-    <button onclick="logout()" style="background: #333;">Sair</button>
+    <button class="active-btn">Para você</button>
+    <button onclick="mostrarUpload()">+ Postar</button>
+    <button onclick="logout()">Sair</button>
   </div>
   <div id="feed"></div>
 </div>
 
-<div id="uploadScreen" class="screen">
-  <h2 style="margin-top: 40px;">Postar novo vídeo</h2>
-  <p>Cole a URL direta do vídeo (.mp4)</p>
-  <input type="text" id="videoUrl" placeholder="https://exemplo.com/video.mp4"><br>
-  <button onclick="salvarNoBanco()">Publicar Agora</button><br>
-  <button onclick="voltarFeed()" style="background: #333;">Cancelar</button>
+<div id="uploadScreen" class="screen active" style="display:none; background:#000;">
+  <h2>Novo Post</h2>
+  <p style="color: gray;">Cole o link direto do vídeo (.mp4)</p>
+  <input type="text" id="videoUrl" placeholder="https://site.com/video.mp4">
+  <button class="main-btn" onclick="salvarLink()">Publicar</button>
+  <button onclick="voltarFeed()" style="background:none; border:none; color:white; margin-top:20px;">Voltar</button>
 </div>
 
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
@@ -127,7 +182,7 @@
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
 
 <script>
-// CONFIGURAÇÃO DO SEU FIREBASE
+// CONFIGURAÇÃO
 const firebaseConfig = {
   apiKey: "AIzaSyCkrysWsEGHnp0XjRR7Uj8pd4e420oYqeU",
   authDomain: "app-tik-tak.firebaseapp.com",
@@ -138,114 +193,114 @@ const firebaseConfig = {
 };
 
 firebase.initializeApp(firebaseConfig);
-
 const auth = firebase.auth();
 const db = firebase.firestore();
 
-// --- NAVEGAÇÃO ---
+// NAVEGAÇÃO
 function showScreen(id) {
-  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-  document.getElementById(id).classList.add('active');
+  document.querySelectorAll('.screen').forEach(s => s.style.display = 'none');
+  const screen = document.getElementById(id);
+  screen.style.display = (id === 'feedScreen') ? 'block' : 'flex';
 }
 
-// --- AUTENTICAÇÃO ---
+// LOGIN / REGISTRO
 function login() {
-  const email = document.getElementById('email').value;
-  const senha = document.getElementById('senha').value;
-  auth.signInWithEmailAndPassword(email, senha)
-    .catch(err => alert("Erro ao entrar: " + err.message));
+  const e = document.getElementById('email').value;
+  const s = document.getElementById('senha').value;
+  auth.signInWithEmailAndPassword(e, s).catch(a => alert(a.message));
 }
 
 function registrar() {
-  const email = document.getElementById('email').value;
-  const senha = document.getElementById('senha').value;
-  auth.createUserWithEmailAndPassword(email, senha)
-    .catch(err => alert("Erro ao criar conta: " + err.message));
+  const e = document.getElementById('email').value;
+  const s = document.getElementById('senha').value;
+  auth.createUserWithEmailAndPassword(e, s).catch(a => alert(a.message));
 }
 
-function logout() {
-  auth.signOut();
-}
+function logout() { auth.signOut(); }
 
-// --- LÓGICA DE VÍDEOS (OPÇÃO B) ---
-function salvarNoBanco() {
+// SALVAR VÍDEO (OPÇÃO B)
+function salvarLink() {
   const url = document.getElementById('videoUrl').value;
+  if(!url || url.length < 10) return alert("URL inválida");
 
-  if(!url || url.length < 10) {
-    alert("Insira uma URL válida de vídeo!");
-    return;
-  }
-
-  // Salvamos apenas o link no Firestore
   db.collection("videos").add({
     url: url,
     likes: 0,
     data: new Date()
-  })
-  .then(() => {
-    alert("Vídeo postado!");
-    document.getElementById('videoUrl').value = ""; // Limpa campo
+  }).then(() => {
+    document.getElementById('videoUrl').value = "";
     showScreen('feedScreen');
     carregarVideos();
-  })
-  .catch(err => alert("Erro ao salvar: " + err.message));
-}
-
-function carregarVideos() {
-  const feed = document.getElementById('feed');
-  
-  db.collection("videos").orderBy("data", "desc").get()
-    .then(snapshot => {
-      feed.innerHTML = "";
-      snapshot.forEach(doc => {
-        const videoData = doc.data();
-        const id = doc.id;
-
-        const container = document.createElement("div");
-        container.className = "video-container";
-        container.innerHTML = `
-          <video src="${videoData.url}" loop muted playsinline></video>
-          <div class="like-btn" onclick="curtir('${id}', this)">
-            ❤️ <span style="font-size: 16px;">${videoData.likes || 0}</span>
-          </div>
-        `;
-        feed.appendChild(container);
-      });
-      configurarAutoPlay();
-    });
-}
-
-function curtir(id, elemento) {
-  const span = elemento.querySelector("span");
-  let atual = parseInt(span.innerText);
-  atual++;
-  span.innerText = atual;
-
-  db.collection("videos").doc(id).update({
-    likes: atual
   });
 }
 
-// --- UTILITÁRIOS ---
-function configurarAutoPlay() {
-  const videos = document.querySelectorAll("video");
+// CARREGAR FEED
+function carregarVideos() {
+  const feed = document.getElementById('feed');
+  db.collection("videos").orderBy("data", "desc").get().then(snap => {
+    feed.innerHTML = "";
+    snap.forEach(doc => {
+      const v = doc.data();
+      const div = document.createElement("div");
+      div.className = "video-container";
+      div.innerHTML = `
+        <video src="${v.url}" loop muted playsinline onclick="togglePlay(this)"></video>
+        <div class="video-info">
+          <h3>@usuario_app</h3>
+          <p>Descrição do vídeo incrível #viral</p>
+        </div>
+        <div class="side-bar">
+          <div class="action-item" onclick="curtir('${doc.id}', this)">
+            <div class="icon-circle">❤️</div>
+            <span>${v.likes || 0}</span>
+          </div>
+          <div class="action-item">
+            <div class="icon-circle">💬</div>
+            <span>0</span>
+          </div>
+          <div class="action-item">
+            <div class="icon-circle">🔄</div>
+            <span>Share</span>
+          </div>
+        </div>
+      `;
+      feed.appendChild(div);
+    });
+    initObserver();
+  });
+}
+
+// CURTIR
+function curtir(id, el) {
+  const span = el.querySelector("span");
+  let n = parseInt(span.innerText) + 1;
+  span.innerText = n;
+  db.collection("videos").doc(id).update({ likes: n });
+}
+
+// PLAY/PAUSE AO TOCAR
+function togglePlay(v) {
+  v.paused ? v.play() : v.pause();
+}
+
+// AUTO PLAY AO ROLAR
+function initObserver() {
   const observer = new IntersectionObserver(entries => {
-    entries.forEach(entry => {
-      if (entry.isIntersecting) {
-        entry.target.play().catch(() => {}); // Tenta dar play automático
+    entries.forEach(e => {
+      if(e.isIntersecting) {
+        e.target.play().catch(()=>{});
       } else {
-        entry.target.pause();
+        e.target.pause();
       }
     });
   }, { threshold: 0.6 });
-
-  videos.forEach(v => observer.observe(v));
+  document.querySelectorAll('video').forEach(v => observer.observe(v));
 }
 
 function mostrarUpload() { showScreen('uploadScreen'); }
 function voltarFeed() { showScreen('feedScreen'); }
 
-// --- OBSERVAR LOGIN ---
+// MONITOR DE LOGIN
 auth.onAuthStateChanged(user => {
   if (user) {
     showScreen('feedScreen');
