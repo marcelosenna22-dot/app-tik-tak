@@ -2,23 +2,270 @@
 <html lang="pt-br">
 <head>
 <meta charset="UTF-8">
-<title>Feed</title>
-<link rel="stylesheet" href="style.css">
+<title>App Vídeos</title>
+
+<style>
+body {
+  margin: 0;
+  background: black;
+  color: white;
+  font-family: Arial;
+}
+
+.screen {
+  display: none;
+  padding: 20px;
+}
+
+.active {
+  display: block;
+}
+
+/* Feed estilo TikTok */
+#feed {
+  height: 100vh;
+  overflow-y: scroll;
+  scroll-snap-type: y mandatory;
+}
+
+.video-container {
+  height: 100vh;
+  scroll-snap-align: start;
+  position: relative;
+}
+
+video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Botões */
+button {
+  padding: 10px;
+  margin: 5px;
+  background: red;
+  color: white;
+  border: none;
+}
+
+/* Curtir */
+.like-btn {
+  position: absolute;
+  right: 10px;
+  bottom: 100px;
+  font-size: 20px;
+  background: rgba(0,0,0,0.5);
+  padding: 10px;
+  border-radius: 10px;
+}
+</style>
 </head>
+
 <body>
 
-<div id="feed"></div>
+<!-- LOGIN -->
+<div id="loginScreen" class="screen active">
+  <h2>Login</h2>
+  <input type="email" id="email" placeholder="Email"><br><br>
+  <input type="password" id="senha" placeholder="Senha"><br><br>
 
-<button onclick="logout()">Sair</button>
-<a href="upload.html">Enviar Vídeo</a>
+  <button onclick="login()">Entrar</button>
+  <button onclick="registrar()">Criar Conta</button>
+</div>
 
+<!-- FEED -->
+<div id="feedScreen" class="screen">
+  <button onclick="logout()">Sair</button>
+  <button onclick="mostrarUpload()">Enviar Vídeo</button>
+  <div id="feed"></div>
+</div>
+
+<!-- UPLOAD -->
+<div id="uploadScreen" class="screen">
+  <h2>Enviar vídeo</h2>
+  <input type="file" id="videoFile"><br><br>
+  <button onclick="upload()">Enviar</button>
+  <button onclick="voltarFeed()">Voltar</button>
+</div>
+
+<!-- Firebase -->
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-storage-compat.js"></script> <!-- ADICIONA -->>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-storage-compat.js"></script>
 
-<script src="firebase.js"></script>
-<script src="app.js"></script>
+<script>
+const firebaseConfig = {
+  apiKey: "AIzaSyCkrysWsEGHnp0XjRR7Uj8pd4e420oYqeU",
+  authDomain: "app-tik-tak.firebaseapp.com",
+  databaseURL: "https://app-tik-tak-default-rtdb.firebaseio.com",
+  projectId: "app-tik-tak",
+  storageBucket: "app-tik-tak.firebasestorage.app",
+  messagingSenderId: "457194424145",
+  appId: "1:457194424145:web:6038c37e3044dd495fb570",
+  measurementId: "G-CXCG87G9PY"
+};
+};
+
+firebase.initializeApp(firebaseConfig);
+
+const auth = firebase.auth();
+const db = firebase.firestore();
+const storage = firebase.storage();
+
+// TELAS
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+// LOGIN
+function login() {
+  const email = document.getElementById('email').value;
+  const senha = document.getElementById('senha').value;
+
+  auth.signInWithEmailAndPassword(email, senha)
+    .then(() => showScreen('feedScreen'))
+    .catch(err => alert(err.message));
+}
+
+// REGISTRAR
+function registrar() {
+  const email = document.getElementById('email').value;
+  const senha = document.getElementById('senha').value;
+
+  auth.createUserWithEmailAndPassword(email, senha)
+    .then(() => auth.signInWithEmailAndPassword(email, senha))
+    .then(() => showScreen('feedScreen'))
+    .catch(err => alert(err.message));
+}
+
+// LOGOUT
+function logout() {
+  auth.signOut();
+  showScreen('loginScreen');
+}
+
+// UPLOAD (CORRIGIDO)
+function upload() {
+  const file = document.getElementById('videoFile').files[0];
+
+  if (!file) {
+    alert("Selecione um vídeo");
+    return;
+  }
+
+  alert("Enviando vídeo...");
+
+  const nome = Date.now() + "_" + file.name;
+  const ref = storage.ref().child("videos/" + nome);
+
+  ref.put(file)
+    .then(snapshot => {
+      alert("Upload concluído!");
+      return snapshot.ref.getDownloadURL();
+    })
+    .then(url => {
+      return db.collection("videos").add({
+        url: url,
+        data: new Date(),
+        likes: 0
+      });
+    })
+    .then(() => {
+      alert("Vídeo enviado!");
+      carregarVideos();
+      showScreen('feedScreen');
+    })
+    .catch(error => {
+      alert("Erro: " + error.message);
+      console.log(error);
+    });
+}
+
+// CARREGAR VÍDEOS
+function carregarVideos() {
+  const feed = document.getElementById('feed');
+
+  db.collection("videos").orderBy("data", "desc")
+    .get()
+    .then(snapshot => {
+      feed.innerHTML = "";
+
+      snapshot.forEach(doc => {
+        const video = doc.data();
+        const id = doc.id;
+
+        const div = document.createElement("div");
+        div.className = "video-container";
+
+        div.innerHTML = `
+          <video src="${video.url}" loop muted playsinline></video>
+
+          <div class="like-btn" onclick="curtir('${id}', this)">
+            ❤️ <span>${video.likes || 0}</span>
+          </div>
+        `;
+
+        feed.appendChild(div);
+      });
+
+      ativarAutoPlay();
+    });
+}
+
+// CURTIR
+function curtir(id, el) {
+  const span = el.querySelector("span");
+  let likes = parseInt(span.innerText);
+
+  likes++;
+  span.innerText = likes;
+
+  db.collection("videos").doc(id).update({
+    likes: likes
+  });
+}
+
+// AUTO PLAY
+function ativarAutoPlay() {
+  const videos = document.querySelectorAll("video");
+
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(entry => {
+      const video = entry.target;
+
+      if (entry.isIntersecting) {
+        video.play();
+      } else {
+        video.pause();
+      }
+    });
+  }, { threshold: 0.7 });
+
+  videos.forEach(video => observer.observe(video));
+}
+
+// TELAS
+function mostrarUpload() {
+  showScreen('uploadScreen');
+}
+
+function voltarFeed() {
+  showScreen('feedScreen');
+}
+
+// AUTO LOGIN
+auth.onAuthStateChanged(user => {
+  if (user) {
+    showScreen('feedScreen');
+    carregarVideos();
+  } else {
+    showScreen('loginScreen');
+  }
+});
+</script>
 
 </body>
 </html>
