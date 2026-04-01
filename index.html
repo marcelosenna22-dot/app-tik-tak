@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Tik Tak VideoApp</title>
+<title>VideoApp Pro - v3.0</title>
 
 <style>
   body { margin: 0; background: #000; color: white; font-family: sans-serif; overflow: hidden; }
@@ -16,37 +16,23 @@
   .video-container { height: 100vh; width: 100%; scroll-snap-align: start; position: relative; background: #000; display: flex; align-items: center; }
   video { width: 100%; height: 100%; object-fit: contain; }
 
-  /* SIDEBAR DE PERFIL (ESQUERDA) */
+  /* SIDEBAR DE PERFIL */
   #sideProfile {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 280px;
-    height: 100%;
-    background: #121212;
-    z-index: 30;
-    transform: translateX(-100%);
-    transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-    box-shadow: 5px 0 15px rgba(0,0,0,0.5);
-    padding: 30px 20px;
-    box-sizing: border-box;
+    position: fixed; top: 0; left: 0; width: 280px; height: 100%; background: #121212; z-index: 30;
+    transform: translateX(-100%); transition: 0.4s; padding: 30px 20px; box-sizing: border-box;
   }
   #sideProfile.open { transform: translateX(0); }
-  
-  .profile-header { text-align: center; margin-bottom: 30px; }
-  .avatar { width: 80px; height: 80px; background: #fe2c55; border-radius: 50%; margin: 0 auto 15px; display: flex; align-items: center; justify-content: center; font-size: 30px; }
-  .stats { display: flex; justify-content: space-around; margin-top: 20px; border-top: 1px solid #333; padding-top: 20px; }
-  .stat-item { text-align: center; }
-  .stat-item b { display: block; font-size: 18px; }
-  .stat-item span { font-size: 12px; color: gray; }
+  .avatar-img { width: 80px; height: 80px; border-radius: 50%; object-fit: cover; border: 2px solid #fe2c55; margin-bottom: 10px; }
 
-  /* OVERLAY PARA FECHAR MENU */
-  #menuOverlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 25; }
+  /* TELA DE POSTAR COMPACTA */
+  .post-card {
+    background: #1a1a1a; padding: 25px; border-radius: 15px; width: 85%; max-width: 350px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.8); text-align: center;
+  }
 
   /* INTERFACE SOBRE O VÍDEO */
-  .video-overlay { position: absolute; bottom: 40px; left: 15px; z-index: 5; max-width: 70%; pointer-events: none; }
-  .video-overlay h3 { margin: 0; font-size: 16px; text-shadow: 1px 1px 3px #000; }
-  .video-overlay p { margin: 8px 0; font-size: 14px; text-shadow: 1px 1px 3px #000; }
+  .video-overlay { position: absolute; bottom: 40px; left: 15px; z-index: 5; pointer-events: none; }
+  .follow-btn { background: #fe2c55; color: white; border: none; padding: 4px 10px; border-radius: 4px; font-size: 12px; margin-left: 8px; cursor: pointer; pointer-events: auto; }
 
   .side-bar-actions { position: absolute; right: 12px; bottom: 100px; display: flex; flex-direction: column; align-items: center; gap: 18px; z-index: 6; }
   .action-item { text-align: center; cursor: pointer; }
@@ -55,76 +41,68 @@
 
   /* NAVEGAÇÃO */
   .nav-top { position: fixed; top: 0; width: 100%; padding: 15px; background: linear-gradient(to bottom, rgba(0,0,0,0.8), transparent); z-index: 10; display: flex; justify-content: space-between; align-items: center; box-sizing: border-box;}
-  .nav-top .center-btns { display: flex; gap: 15px; position: absolute; left: 50%; transform: translateX(-50%); }
-  .nav-top button { background: none; border: none; color: white; font-weight: bold; cursor: pointer; }
+  
+  input, textarea { padding: 12px; width: 100%; background: #222; border: 1px solid #333; color: white; border-radius: 8px; margin-bottom: 10px; box-sizing: border-box; }
+  .btn-main { background: #fe2c55; color: white; border: none; padding: 12px; width: 100%; border-radius: 5px; font-weight: bold; cursor: pointer; }
 
   /* MODAL COMENTÁRIOS */
-  #commentModal { display: none; position: fixed; bottom: 0; width: 100%; height: 60%; background: #1a1a1a; z-index: 20; border-radius: 15px 15px 0 0; padding: 20px; box-sizing: border-box; }
-  #commentList { height: 75%; overflow-y: auto; margin-bottom: 10px; }
-  .comment-item { display: flex; justify-content: space-between; margin-bottom: 12px; border-bottom: 1px solid #333; padding-bottom: 5px; }
-
-  /* FORMULÁRIOS */
-  input, textarea { padding: 12px; width: 85%; max-width: 320px; background: #222; border: 1px solid #333; color: white; border-radius: 8px; margin-bottom: 10px; }
-  .btn-main { background: #fe2c55; color: white; border: none; padding: 15px; width: 85%; max-width: 320px; border-radius: 5px; font-weight: bold; cursor: pointer; }
+  #commentModal { display: none; position: fixed; bottom: 0; width: 100%; height: 60%; background: #1a1a1a; z-index: 40; border-radius: 15px 15px 0 0; padding: 20px; box-sizing: border-box; }
+  #commentList { height: 70%; overflow-y: auto; margin-bottom: 10px; }
 </style>
 </head>
 
 <body>
 
-<div id="menuOverlay" onclick="toggleMenu()"></div>
 <div id="sideProfile">
-  <div class="profile-header">
-    <div class="avatar">👤</div>
+  <div style="text-align: center;">
+    <img id="myAvatar" class="avatar-img" src="https://cdn-icons-png.flaticon.com/512/149/149071.png">
     <h3 id="profileName">@usuario</h3>
-    <p id="profileEmail" style="font-size: 12px; color: gray;"></p>
+    <input type="text" id="newAvatarUrl" placeholder="URL da foto (jpg/png)" style="font-size: 10px;" onchange="atualizarFoto()">
   </div>
-  
-  <div class="stats">
-    <div class="stat-item"><b id="countVideos">0</b><span>Vídeos</span></div>
-    <div class="stat-item"><b>0</b><span>Seguidores</span></div>
+  <div style="display: flex; justify-content: space-around; margin: 20px 0; border-top: 1px solid #333; padding-top: 15px;">
+    <div style="text-align:center;"><b id="countVideos">0</b><br><small>Vídeos</small></div>
+    <div style="text-align:center;"><b id="countFollowers">0</b><br><small>Seguidores</small></div>
   </div>
-
-  <div style="margin-top: 50px;">
-    <button onclick="showScreen('uploadScreen'); toggleMenu()" style="width: 100%; padding: 12px; background: #333; color: white; border: none; border-radius: 5px; margin-bottom: 10px;">+ Novo Vídeo</button>
-    <button onclick="logout()" style="width: 100%; padding: 12px; background: none; color: #fe2c55; border: 1px solid #fe2c55; border-radius: 5px;">Sair da Conta</button>
-  </div>
+  <button onclick="logout()" style="width:100%; background:none; border:1px solid #fe2c55; color:#fe2c55; padding:10px; border-radius:5px;">Sair</button>
+  <button onclick="toggleMenu()" style="width:100%; margin-top:10px; background:#333; color:white; border:none; padding:10px; border-radius:5px;">Fechar</button>
 </div>
 
 <div id="loginScreen" class="screen active">
-  <h1>TikTak VideoApp</h1>
-  <input type="email" id="email" placeholder="Email">
-  <input type="password" id="senha" placeholder="Senha">
-  <button class="btn-main" onclick="login()">Entrar</button>
-  <button onclick="registrar()" style="background:none; border:none; color:gray; margin-top:10px;">Criar conta</button>
+  <div class="post-card">
+    <h2>VideoApp</h2>
+    <input type="email" id="email" placeholder="Email">
+    <input type="password" id="senha" placeholder="Senha">
+    <button class="btn-main" onclick="login()">Entrar</button>
+    <button onclick="registrar()" style="background:none; border:none; color:gray; margin-top:10px;">Criar conta</button>
+  </div>
 </div>
 
 <div id="feedScreen" class="screen">
   <div class="nav-top">
-    <button onclick="toggleMenu()" style="font-size: 24px;">☰</button>
-    <div class="center-btns">
-      <button onclick="carregarVideos()">Para você</button>
-    </div>
-    <button onclick="showScreen('uploadScreen')" style="font-size: 20px;">+</button>
+    <button onclick="toggleMenu()" style="font-size: 24px; color:white; background:none; border:none;">☰</button>
+    <button onclick="showScreen('uploadScreen')" style="font-size: 20px; color:white; background:none; border:none;">+</button>
   </div>
   <div id="feed"></div>
 </div>
 
-<div id="uploadScreen" class="screen">
-  <h2>Novo Post</h2>
-  <input type="text" id="videoUrl" placeholder="URL do vídeo (.mp4)">
-  <textarea id="videoDesc" rows="3" placeholder="Legenda do vídeo..."></textarea>
-  <button class="btn-main" onclick="salvarPost()">Publicar</button>
-  <button onclick="showScreen('feedScreen')" style="color:white; background:none; border:none; margin-top:10px;">Voltar</button>
+<div id="uploadScreen" class="screen" style="background: rgba(0,0,0,0.9);">
+  <div class="post-card">
+    <h3>Novo Post</h3>
+    <input type="text" id="videoUrl" placeholder="URL do vídeo (.mp4, .webm, .ogg)">
+    <textarea id="videoDesc" rows="2" placeholder="Legenda do vídeo..."></textarea>
+    <button class="btn-main" onclick="salvarPost()">Publicar</button>
+    <button onclick="showScreen('feedScreen')" style="background:none; border:none; color:white; margin-top:10px;">Cancelar</button>
+  </div>
 </div>
 
 <div id="commentModal">
-  <div style="display:flex; justify-content: space-between; align-items:center; margin-bottom:15px;">
-    <strong>Comentários</strong>
-    <button onclick="fecharComentarios()" style="background:none; border:none; color:white; font-size:25px;">×</button>
+  <div style="display:flex; justify-content: space-between; align-items:center; margin-bottom:10px;">
+    <b>Comentários</b>
+    <button onclick="fecharComentarios()" style="background:none; border:none; color:white; font-size:24px;">×</button>
   </div>
   <div id="commentList"></div>
   <div style="display:flex; gap:5px;">
-    <input type="text" id="newComment" placeholder="Escreva algo..." style="margin-bottom:0;">
+    <input type="text" id="newComment" placeholder="Comentar..." style="margin-bottom:0;">
     <button onclick="enviarComentario()" style="background:#fe2c55; border:none; color:white; border-radius:8px; padding:0 15px;">↑</button>
   </div>
 </div>
@@ -149,42 +127,47 @@ const db = firebase.firestore();
 
 let videoAtualId = null;
 
-// CONTROLE DO MENU
-function toggleMenu() {
-  const menu = document.getElementById('sideProfile');
-  const overlay = document.getElementById('menuOverlay');
-  const isOpen = menu.classList.contains('open');
-  
-  if(isOpen) {
-    menu.classList.remove('open');
-    overlay.style.display = 'none';
-  } else {
-    menu.classList.add('open');
-    overlay.style.display = 'block';
-    carregarDadosPerfil();
-  }
-}
-
-function carregarDadosPerfil() {
-  const user = auth.currentUser;
-  document.getElementById('profileName').innerText = "@" + user.email.split('@')[0];
-  document.getElementById('profileEmail').innerText = user.email;
-  
-  // Conta vídeos do usuário
-  db.collection("videos").where("uid", "==", user.uid).get().then(snap => {
-    document.getElementById('countVideos').innerText = snap.size;
-  });
-}
-
 function showScreen(id) {
   document.querySelectorAll('.screen').forEach(s => s.style.display = 'none');
   const el = document.getElementById(id);
   el.style.display = (id === 'feedScreen') ? 'block' : 'flex';
 }
 
-function login() { auth.signInWithEmailAndPassword(document.getElementById('email').value, document.getElementById('senha').value).catch(e => alert(e.message)); }
-function registrar() { auth.createUserWithEmailAndPassword(document.getElementById('email').value, document.getElementById('senha').value).catch(e => alert(e.message)); }
-function logout() { auth.signOut(); toggleMenu(); }
+function toggleMenu() {
+  const menu = document.getElementById('sideProfile');
+  menu.classList.toggle('open');
+  if(menu.classList.contains('open')) carregarDadosPerfil();
+}
+
+function atualizarFoto() {
+  const url = document.getElementById('newAvatarUrl').value;
+  db.collection("usuarios").doc(auth.currentUser.uid).set({ foto: url }, { merge: true });
+  document.getElementById('myAvatar').src = url;
+}
+
+function carregarDadosPerfil() {
+  const user = auth.currentUser;
+  document.getElementById('profileName').innerText = "@" + user.email.split('@')[0];
+  
+  // Busca foto
+  db.collection("usuarios").doc(user.uid).get().then(doc => {
+    if(doc.exists && doc.data().foto) document.getElementById('myAvatar').src = doc.data().foto;
+  });
+
+  // Conta vídeos postados
+  db.collection("videos").where("uid", "==", user.uid).get().then(snap => {
+    document.getElementById('countVideos').innerText = snap.size;
+  });
+
+  // CONTAGEM DE SEGUIDORES (Corrigido)
+  db.collection("usuarios").doc(user.uid).collection("seguidores").get().then(snap => {
+    document.getElementById('countFollowers').innerText = snap.size;
+  });
+}
+
+function login() { auth.signInWithEmailAndPassword(document.getElementById('email').value, document.getElementById('senha').value); }
+function registrar() { auth.createUserWithEmailAndPassword(document.getElementById('email').value, document.getElementById('senha').value); }
+function logout() { auth.signOut(); }
 
 function salvarPost() {
   const url = document.getElementById('videoUrl').value;
@@ -206,21 +189,43 @@ function carregarVideos() {
       div.className = "video-container";
       div.innerHTML = `
         <video src="${v.url}" loop muted playsinline onclick="this.paused ? this.play() : this.pause()"></video>
-        <div class="video-overlay"><h3>@${v.autor}</h3><p>${v.descricao}</p></div>
+        <div class="video-overlay">
+          <h3>@${v.autor} <button class="follow-btn" onclick="seguir('${v.uid}')">Seguir</button></h3>
+          <p>${v.descricao}</p>
+        </div>
         <div class="side-bar-actions">
           <div class="action-item" onclick="curtir('${doc.id}')"><div class="icon-circle">❤️</div><span>${v.likes}</span></div>
           <div class="action-item" onclick="abrirComentarios('${doc.id}')"><div class="icon-circle">💬</div><span>${v.commentsCount || 0}</span></div>
           <div class="action-item" onclick="compartilhar('${doc.id}', '${v.url}')"><div class="icon-circle">🚀</div><span>${v.shares || 0}</span></div>
-          ${v.uid === auth.currentUser.uid ? `<div class="action-item" onclick="excluirVideo('${doc.id}')"><div class="icon-circle" style="color:#ff4d4d">🗑️</div><span>Apagar</span></div>` : ''}
+          ${v.uid === auth.currentUser.uid ? `<div class="action-item" onclick="excluirVideo('${doc.id}')"><div class="icon-circle" style="color:#ff4d4d">🗑️</div></div>` : ''}
         </div>
       `;
       feed.appendChild(div);
     });
-    iniciarObserver();
   });
 }
 
-function excluirVideo(id) { if(confirm("Apagar vídeo?")) db.collection("videos").doc(id).delete(); }
+// LOGICA DE SEGUIR (Corrigida para subir o número)
+function seguir(uidSeguido) {
+  if(uidSeguido === auth.currentUser.uid) return alert("Você não pode seguir a si mesmo!");
+  
+  // 1. Adiciona na lista de quem você segue
+  db.collection("usuarios").doc(auth.currentUser.uid).collection("seguindo").doc(uidSeguido).set({ data: new Date() });
+  
+  // 2. Adiciona na lista de seguidores da pessoa (para o número subir para ela)
+  db.collection("usuarios").doc(uidSeguido).collection("seguidores").doc(auth.currentUser.uid).set({ data: new Date() })
+  .then(() => alert("Você agora segue este usuário!"));
+}
+
+function compartilhar(id, url) {
+  db.collection("videos").doc(id).update({ shares: firebase.firestore.FieldValue.increment(1) });
+  if(navigator.share) {
+    navigator.share({ title: 'VideoApp', url: url });
+  } else {
+    navigator.clipboard.writeText(url);
+    alert("Link copiado!");
+  }
+}
 
 function abrirComentarios(id) {
   videoAtualId = id;
@@ -230,11 +235,7 @@ function abrirComentarios(id) {
     list.innerHTML = "";
     snap.forEach(cDoc => {
       const c = cDoc.data();
-      list.innerHTML += `
-        <div class="comment-item">
-          <div><b>@${c.autor}</b>: ${c.texto}</div>
-          ${c.uid === auth.currentUser.uid ? `<button onclick="excluirComentario('${cDoc.id}')" style="background:none; border:none; color:#666; font-size:10px;">Excluir</button>` : ''}
-        </div>`;
+      list.innerHTML += `<div style="margin-bottom:10px; font-size:14px;"><b>@${c.autor}</b>: ${c.texto}</div>`;
     });
   });
 }
@@ -243,35 +244,16 @@ function enviarComentario() {
   const texto = document.getElementById('newComment').value;
   if(!texto) return;
   const ref = db.collection("videos").doc(videoAtualId);
-  ref.collection("comentarios").add({ autor: auth.currentUser.email.split('@')[0], uid: auth.currentUser.uid, texto: texto, data: new Date() })
-    .then(() => {
-      document.getElementById('newComment').value = "";
-      ref.update({ commentsCount: firebase.firestore.FieldValue.increment(1) });
-    });
-}
-
-function excluirComentario(cId) {
-  const ref = db.collection("videos").doc(videoAtualId);
-  ref.collection("comentarios").doc(cId).delete().then(() => {
-    ref.update({ commentsCount: firebase.firestore.FieldValue.increment(-1) });
+  ref.collection("comentarios").add({ autor: auth.currentUser.email.split('@')[0], texto: texto, data: new Date() })
+  .then(() => {
+    document.getElementById('newComment').value = "";
+    ref.update({ commentsCount: firebase.firestore.FieldValue.increment(1) });
   });
 }
 
 function fecharComentarios() { document.getElementById('commentModal').style.display = 'none'; }
+function excluirVideo(id) { if(confirm("Apagar vídeo?")) db.collection("videos").doc(id).delete(); }
 function curtir(id) { db.collection("videos").doc(id).update({ likes: firebase.firestore.FieldValue.increment(1) }); }
-
-function compartilhar(id, url) {
-  db.collection("videos").doc(id).update({ shares: firebase.firestore.FieldValue.increment(1) });
-  if(navigator.share) navigator.share({ url: url });
-  else { navigator.clipboard.writeText(url); alert("Link copiado!"); }
-}
-
-function iniciarObserver() {
-  const obs = new IntersectionObserver(entries => {
-    entries.forEach(e => { if(e.isIntersecting) e.target.play().catch(()=>{}); else e.target.pause(); });
-  }, { threshold: 0.6 });
-  document.querySelectorAll('video').forEach(v => obs.observe(v));
-}
 
 auth.onAuthStateChanged(user => { if(user) { showScreen('feedScreen'); carregarVideos(); } else showScreen('loginScreen'); });
 </script>
