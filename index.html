@@ -19,54 +19,37 @@
   /* SIDEBAR DE PERFIL */
   #sideProfile {
     position: fixed; top: 0; left: 0; width: 280px; height: 100%; background: #121212; z-index: 50;
-    transform: translateX(-100%); transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1); padding: 40px 20px; box-sizing: border-box;
+    transform: translateX(-100%); transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1); padding: 40px 15px; 
+    box-sizing: border-box; overflow-y: auto;
   }
   #sideProfile.open { transform: translateX(0); }
   #menuOverlay { 
     display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
     background: rgba(0,0,0,0.6); z-index: 45; 
   }
-  .avatar-img { width: 90px; height: 90px; border-radius: 50%; object-fit: cover; border: 2px solid #fe2c55; margin-bottom: 15px; }
+  .avatar-img { width: 80px; height: 80px; border-radius: 50%; object-fit: cover; border: 2px solid #fe2c55; margin-bottom: 10px; }
 
-  /* TELA DE POSTAR */
-  .post-card {
-    background: #1a1a1a; padding: 25px; border-radius: 15px; width: 85%; max-width: 350px;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.8); text-align: center;
+  /* GRID DE VÍDEOS */
+  .video-grid {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; width: 100%; margin-top: 20px;
   }
-
-  /* INTERFACE SOBRE O VÍDEO */
-  .video-overlay { position: absolute; bottom: 40px; left: 15px; z-index: 5; pointer-events: none; }
-  .follow-btn { background: #fe2c55; color: white; border: none; padding: 5px 12px; border-radius: 4px; font-size: 12px; margin-left: 8px; cursor: pointer; pointer-events: auto; font-weight: bold; }
-  
   .video-grid-item {
-    width: 100%;
-    aspect-ratio: 9/16;
-    background: #111;
-    object-fit: cover;
-    cursor: pointer;
-    border: 1px solid #000;
+    width: 100%; aspect-ratio: 9/16; background: #222; object-fit: cover; cursor: pointer; border: 0.5px solid #000;
   }
 
+  /* INTERFACE */
+  .btn-main { background: #fe2c55; color: white; border: none; padding: 12px; width: 100%; border-radius: 5px; font-weight: bold; cursor: pointer; }
+  .video-overlay { position: absolute; bottom: 40px; left: 15px; z-index: 5; pointer-events: none; }
   .side-bar-actions { position: absolute; right: 12px; bottom: 100px; display: flex; flex-direction: column; align-items: center; gap: 18px; z-index: 6; }
-  .action-item { text-align: center; cursor: pointer; }
   .icon-circle { width: 45px; height: 45px; background: rgba(45, 45, 45, 0.7); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 22px; margin-bottom: 4px; }
-  .action-item span { font-size: 11px; font-weight: bold; }
-
-  /* NAVEGAÇÃO TOPO */
+  
   .nav-top { 
     position: fixed; top: 0; width: 100%; padding: 15px 20px; 
     background: linear-gradient(to bottom, rgba(0,0,0,0.9), transparent); 
     z-index: 10; display: flex; justify-content: space-between; align-items: center; box-sizing: border-box;
   }
-  .app-brand { display: flex; align-items: center; gap: 10px; }
-  .app-name { font-weight: bold; font-size: 20px; letter-spacing: -0.5px; }
-  
   input, textarea { padding: 12px; width: 100%; background: #222; border: 1px solid #333; color: white; border-radius: 8px; margin-bottom: 10px; box-sizing: border-box; }
-  .btn-main { background: #fe2c55; color: white; border: none; padding: 12px; width: 100%; border-radius: 5px; font-weight: bold; cursor: pointer; }
-
-  /* MODAL COMENTÁRIOS */
   #commentModal { display: none; position: fixed; bottom: 0; width: 100%; height: 60%; background: #1a1a1a; z-index: 60; border-radius: 15px 15px 0 0; padding: 20px; box-sizing: border-box; }
-  #commentList { height: 70%; overflow-y: auto; margin-bottom: 10px; }
 </style>
 </head>
 
@@ -77,24 +60,26 @@
 <div id="sideProfile">
   <div style="text-align: center;">
     <img id="myAvatar" class="avatar-img" src="https://cdn-icons-png.flaticon.com/512/149/149071.png">
-    <h3 id="profileName">@usuario</h3>
-    <p id="profileEmail" style="font-size: 11px; color: gray;"></p>
+    <h3 id="profileName" style="margin: 5px 0;">@usuario</h3>
+    <p id="profileEmail" style="font-size: 10px; color: gray; margin-bottom: 15px;"></p>
   </div>
   
-  <div style="display: flex; justify-content: space-around; margin: 20px 0; border-top: 1px solid #333; padding-top: 15px;">
-    <div style="text-align:center;"><b id="countVideos">0</b><br><small style="color:gray;">Vídeos</small></div>
+  <div style="display: flex; justify-content: space-around; margin-bottom: 20px; border-top: 1px solid #333; padding-top: 15px;">
+    <div style="text-align:center;"><b id="countVideos">0</b><br><small style="color:gray;">Posts</small></div>
     <div style="text-align:center;"><b id="countFollowers">0</b><br><small style="color:gray;">Seguidores</small></div>
   </div>
 
-  <div style="margin-top: 40px;">
-    <p style="font-size: 10px; color: gray; text-transform: uppercase; font-weight: bold;">Configurações</p>
-    <input type="text" id="newAvatarUrl" placeholder="Nova URL da foto" style="font-size: 11px;" onchange="atualizarFoto()">
-    <button onclick="logout()" style="width:100%; background:none; border:1px solid #333; color:white; padding:12px; border-radius:5px; cursor:pointer; margin-top: 10px;">Sair da conta</button>
+  <p style="font-size: 12px; font-weight: bold; color: #fe2c55; border-bottom: 1px solid #333; padding-bottom: 5px;">MEUS VÍDEOS</p>
+  <div id="myVideosGrid" class="video-grid"></div>
+
+  <div style="margin-top: 30px; border-top: 1px solid #333; padding-top: 20px;">
+    <input type="text" id="newAvatarUrl" placeholder="URL da nova foto" style="font-size: 11px;" onchange="atualizarFoto()">
+    <button onclick="logout()" style="width:100%; background:none; border:1px solid #444; color:white; padding:10px; border-radius:5px; cursor:pointer;">Sair</button>
   </div>
 </div>
 
 <div id="loginScreen" class="screen active">
-  <div class="post-card">
+  <div class="post-card" style="background:#1a1a1a; padding:30px; border-radius:15px; text-align:center;">
     <h2 style="color: #fe2c55;">Tik Tak!</h2>
     <input type="email" id="email" placeholder="Email">
     <input type="password" id="senha" placeholder="Senha">
@@ -105,52 +90,46 @@
 
 <div id="feedScreen" class="screen">
   <div class="nav-top">
-    <div class="app-brand">
-      <button onclick="toggleMenu()" style="font-size: 24px; color:white; background:none; border:none; cursor:pointer; padding:0;">☰</button>
-      <span class="app-name">Tik Tak!</span>
-    </div>
+    <button onclick="toggleMenu()" style="font-size: 24px; color:white; background:none; border:none; cursor:pointer;">☰</button>
+    <span style="font-weight:bold; font-size:20px;">Tik Tak!</span>
     <button onclick="showScreen('uploadScreen')" style="font-size: 28px; color:white; background:none; border:none; cursor:pointer;">+</button>
   </div>
   <div id="feed"></div>
 </div>
 
-<div id="visitProfileScreen" class="screen" style="background: #000; overflow-y: auto;">
-  <div style="padding: 60px 20px 20px 20px; display: flex; flex-direction: column; align-items: center;">
+<div id="visitProfileScreen" class="screen" style="background: #000; overflow-y: auto; display:none; flex-direction:column;">
+  <div style="padding: 60px 20px; display: flex; flex-direction: column; align-items: center;">
     <button onclick="showScreen('feedScreen')" style="position: absolute; top: 20px; left: 20px; background: none; border: none; color: white; font-size: 24px; cursor:pointer;">←</button>
-    
     <img id="visitAvatar" class="avatar-img" src="https://cdn-icons-png.flaticon.com/512/149/149071.png">
     <h3 id="visitName">@usuario</h3>
-    
     <div style="display: flex; gap: 30px; margin: 20px 0;">
-      <div style="text-align:center;"><b id="visitCountVideos">0</b><br><small style="color:gray;">Vídeos</small></div>
+      <div style="text-align:center;"><b id="visitCountVideos">0</b><br><small style="color:gray;">Posts</small></div>
       <div style="text-align:center;"><b id="visitCountFollowers">0</b><br><small style="color:gray;">Seguidores</small></div>
     </div>
-
     <button id="visitFollowBtn" class="btn-main" style="width: 150px; margin-bottom: 30px;">Seguir</button>
-
-    <div id="visitGrid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; width: 100%;"></div>
+    <div id="visitGrid" class="video-grid"></div>
   </div>
 </div>
 
 <div id="uploadScreen" class="screen" style="background: rgba(0,0,0,0.95);">
-  <div class="post-card">
+  <div class="post-card" style="background:#1a1a1a; padding:30px; border-radius:15px; text-align:center;">
     <h3>Novo Post</h3>
-    <input type="text" id="videoUrl" placeholder="URL do vídeo (mp4, webm)">
-    <textarea id="videoDesc" rows="3" placeholder="Escreva uma legenda..."></textarea>
-    <button class="btn-main" onclick="salvarPost()">Publicar agora</button>
-    <button onclick="showScreen('feedScreen')" style="background:none; border:none; color:gray; margin-top:15px; cursor:pointer;">Voltar ao feed</button>
+    <input type="text" id="videoUrl" placeholder="Link do vídeo .mp4">
+    <textarea id="videoDesc" rows="3" placeholder="Legenda..."></textarea>
+    <button class="btn-main" onclick="salvarPost()">Publicar</button>
+    <button onclick="showScreen('feedScreen')" style="background:none; border:none; color:gray; margin-top:15px; cursor:pointer;">Cancelar</button>
   </div>
 </div>
 
 <div id="commentModal">
   <div style="display:flex; justify-content: space-between; align-items:center; margin-bottom:15px;">
-    <b style="font-size: 18px;">Comentários</b>
-    <button onclick="fecharComentarios()" style="background:none; border:none; color:white; font-size:28px; cursor:pointer;">×</button>
+    <b>Comentários</b>
+    <button onclick="fecharComentarios()" style="background:none; border:none; color:white; font-size:28px;">×</button>
   </div>
-  <div id="commentList"></div>
+  <div id="commentList" style="height: 70%; overflow-y: auto;"></div>
   <div style="display:flex; gap:10px; border-top: 1px solid #333; padding-top: 15px;">
-    <input type="text" id="newComment" placeholder="Comentar..." style="margin-bottom:0;">
-    <button onclick="enviarComentario()" style="background:#fe2c55; border:none; color:white; border-radius:8px; padding:0 20px;">↑</button>
+    <input type="text" id="newComment" placeholder="Escreva..." style="margin-bottom:0;">
+    <button onclick="enviarComentario()" style="background:#fe2c55; border:none; color:white; padding:0 15px; border-radius:8px;">↑</button>
   </div>
 </div>
 
@@ -171,7 +150,6 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
-
 let videoAtualId = null;
 
 function showScreen(id) {
@@ -183,8 +161,7 @@ function showScreen(id) {
 function toggleMenu() {
   const menu = document.getElementById('sideProfile');
   const overlay = document.getElementById('menuOverlay');
-  const isOpen = menu.classList.contains('open');
-  if(isOpen) {
+  if(menu.classList.contains('open')) {
     menu.classList.remove('open');
     overlay.style.display = 'none';
   } else {
@@ -194,39 +171,30 @@ function toggleMenu() {
   }
 }
 
-function atualizarFoto() {
-  const url = document.getElementById('newAvatarUrl').value;
-  if(!url) return;
-  db.collection("usuarios").doc(auth.currentUser.uid).set({ foto: url }, { merge: true });
-  document.getElementById('myAvatar').src = url;
-}
-
 function carregarDadosPerfil() {
   const user = auth.currentUser;
+  const grid = document.getElementById('myVideosGrid');
   document.getElementById('profileName').innerText = "@" + user.email.split('@')[0];
   document.getElementById('profileEmail').innerText = user.email;
+  
   db.collection("usuarios").doc(user.uid).get().then(doc => {
     if(doc.exists && doc.data().foto) document.getElementById('myAvatar').src = doc.data().foto;
   });
-  db.collection("videos").where("uid", "==", user.uid).get().then(snap => document.getElementById('countVideos').innerText = snap.size);
-  db.collection("usuarios").doc(user.uid).collection("seguidores").get().then(snap => document.getElementById('countFollowers').innerText = snap.size);
-}
 
-function login() { auth.signInWithEmailAndPassword(document.getElementById('email').value, document.getElementById('senha').value).catch(e => alert(e.message)); }
-function registrar() { auth.createUserWithEmailAndPassword(document.getElementById('email').value, document.getElementById('senha').value).catch(e => alert(e.message)); }
-function logout() { auth.signOut(); if(document.getElementById('sideProfile').classList.contains('open')) toggleMenu(); }
+  db.collection("videos").where("uid", "==", user.uid).orderBy("data", "desc").get().then(snap => {
+    document.getElementById('countVideos').innerText = snap.size;
+    grid.innerHTML = "";
+    snap.forEach(doc => {
+      const v = doc.data();
+      const vid = document.createElement("video");
+      vid.className = "video-grid-item";
+      vid.src = v.url;
+      grid.appendChild(vid);
+    });
+  });
 
-function salvarPost() {
-  const url = document.getElementById('videoUrl').value;
-  const desc = document.getElementById('videoDesc').value;
-  if(!url) return;
-  db.collection("videos").add({
-    url: url, descricao: desc, likes: 0, shares: 0, commentsCount: 0,
-    uid: auth.currentUser.uid, autor: auth.currentUser.email.split('@')[0], data: new Date()
-  }).then(() => { 
-    showScreen('feedScreen'); 
-    document.getElementById('videoUrl').value = "";
-    document.getElementById('videoDesc').value = "";
+  db.collection("usuarios").doc(user.uid).collection("seguidores").get().then(snap => {
+    document.getElementById('countFollowers').innerText = snap.size;
   });
 }
 
@@ -241,14 +209,11 @@ async function visitarPerfil(uid, nome) {
     else document.getElementById('visitAvatar').src = "https://cdn-icons-png.flaticon.com/512/149/149071.png";
   });
 
-  db.collection("usuarios").doc(uid).collection("seguidores").get().then(snap => document.getElementById('visitCountFollowers').innerText = snap.size);
-
-  const btnSeguir = document.getElementById('visitFollowBtn');
-  btnSeguir.onclick = () => seguir(uid);
-
+  // BUSCA TODOS OS VÍDEOS DO USUÁRIO VISITADO
   db.collection("videos").where("uid", "==", uid).orderBy("data", "desc").get().then(snap => {
     grid.innerHTML = "";
     document.getElementById('visitCountVideos').innerText = snap.size;
+    if(snap.empty) grid.innerHTML = "<p style='grid-column: span 3; text-align:center; color:gray;'>Nenhum vídeo postado.</p>";
     snap.forEach(doc => {
       const v = doc.data();
       const vid = document.createElement("video");
@@ -257,6 +222,12 @@ async function visitarPerfil(uid, nome) {
       grid.appendChild(vid);
     });
   });
+
+  db.collection("usuarios").doc(uid).collection("seguidores").get().then(snap => {
+    document.getElementById('visitCountFollowers').innerText = snap.size;
+  });
+
+  document.getElementById('visitFollowBtn').onclick = () => seguir(uid);
 }
 
 function carregarVideos() {
@@ -276,7 +247,7 @@ function carregarVideos() {
         <div class="side-bar-actions">
           <div class="action-item" onclick="curtir('${doc.id}')"><div class="icon-circle">❤️</div><span>${v.likes}</span></div>
           <div class="action-item" onclick="abrirComentarios('${doc.id}')"><div class="icon-circle">💬</div><span>${v.commentsCount || 0}</span></div>
-          <div class="action-item" onclick="compartilhar('${doc.id}', '${v.url}')"><div class="icon-circle">🚀</div><span>${v.shares || 0}</span></div>
+          <div class="action-item" onclick="compartilhar('${doc.id}', '${v.url}')"><div class="icon-circle">🚀</div></div>
           ${v.uid === auth.currentUser.uid ? `<div class="action-item" onclick="excluirVideo('${doc.id}')"><div class="icon-circle" style="color:#ff4d4d">🗑️</div></div>` : ''}
         </div>
       `;
@@ -285,19 +256,50 @@ function carregarVideos() {
   });
 }
 
-function seguir(uidSeguido) {
-  if(uidSeguido === auth.currentUser.uid) return alert("Você não pode seguir a si mesmo!");
-  db.collection("usuarios").doc(auth.currentUser.uid).collection("seguindo").doc(uidSeguido).set({ data: new Date() });
-  db.collection("usuarios").doc(uidSeguido).collection("seguidores").doc(auth.currentUser.uid).set({ data: new Date() })
-  .then(() => alert("Seguindo usuário!"));
+// FUNÇÃO DE COMPARTILHAMENTO RESTAURADA
+function compartilhar(id, url) {
+  // Incrementa no banco
+  db.collection("videos").doc(id).update({ shares: firebase.firestore.FieldValue.increment(1) });
+  
+  if (navigator.share) {
+    navigator.share({
+      title: 'Veja este vídeo no Tik Tak!',
+      url: url
+    }).catch(console.error);
+  } else {
+    // Caso o navegador não suporte a API de partilha (como alguns desktops), copia o link
+    navigator.clipboard.writeText(url).then(() => {
+      alert("Link do vídeo copiado para a área de transferência!");
+    });
+  }
 }
 
 function curtir(id) { db.collection("videos").doc(id).update({ likes: firebase.firestore.FieldValue.increment(1) }); }
 
-function compartilhar(id, url) {
-  db.collection("videos").doc(id).update({ shares: firebase.firestore.FieldValue.increment(1) });
-  if(navigator.share) { navigator.share({ title: 'Tik Tak!', url: url }); }
-  else { navigator.clipboard.writeText(url); alert("Link copiado!"); }
+function atualizarFoto() {
+  const url = document.getElementById('newAvatarUrl').value;
+  if(!url) return;
+  db.collection("usuarios").doc(auth.currentUser.uid).set({ foto: url }, { merge: true });
+  document.getElementById('myAvatar').src = url;
+}
+
+function login() { auth.signInWithEmailAndPassword(document.getElementById('email').value, document.getElementById('senha').value).catch(e => alert(e.message)); }
+function registrar() { auth.createUserWithEmailAndPassword(document.getElementById('email').value, document.getElementById('senha').value).catch(e => alert(e.message)); }
+function logout() { auth.signOut(); location.reload(); }
+
+function salvarPost() {
+  const url = document.getElementById('videoUrl').value;
+  if(!url) return;
+  db.collection("videos").add({
+    url: url, descricao: document.getElementById('videoDesc').value, likes: 0, shares: 0, commentsCount: 0,
+    uid: auth.currentUser.uid, autor: auth.currentUser.email.split('@')[0], data: new Date()
+  }).then(() => showScreen('feedScreen'));
+}
+
+function seguir(uid) { 
+  db.collection("usuarios").doc(auth.currentUser.uid).collection("seguindo").doc(uid).set({data: new Date()});
+  db.collection("usuarios").doc(uid).collection("seguidores").doc(auth.currentUser.uid).set({data: new Date()});
+  alert("Agora você está seguindo este usuário!");
 }
 
 function abrirComentarios(id) {
@@ -306,21 +308,18 @@ function abrirComentarios(id) {
   db.collection("videos").doc(id).collection("comentarios").orderBy("data", "asc").onSnapshot(snap => {
     const list = document.getElementById('commentList');
     list.innerHTML = "";
-    snap.forEach(cDoc => {
-      const c = cDoc.data();
-      list.innerHTML += `<div style="margin-bottom:12px; font-size:14px;"><b>@${c.autor}</b> ${c.texto}</div>`;
-    });
+    snap.forEach(doc => { list.innerHTML += `<div style="margin-bottom:10px;"><b>@${doc.data().autor}</b> ${doc.data().texto}</div>`; });
   });
 }
 
 function enviarComentario() {
-  const texto = document.getElementById('newComment').value;
-  if(!texto) return;
-  const ref = db.collection("videos").doc(videoAtualId);
-  ref.collection("comentarios").add({ autor: auth.currentUser.email.split('@')[0], texto: texto, data: new Date() })
-  .then(() => {
+  const t = document.getElementById('newComment').value;
+  if(!t) return;
+  db.collection("videos").doc(videoAtualId).collection("comentarios").add({
+    autor: auth.currentUser.email.split('@')[0], texto: t, data: new Date()
+  }).then(() => {
     document.getElementById('newComment').value = "";
-    ref.update({ commentsCount: firebase.firestore.FieldValue.increment(1) });
+    db.collection("videos").doc(videoAtualId).update({ commentsCount: firebase.firestore.FieldValue.increment(1) });
   });
 }
 
