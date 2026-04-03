@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
@@ -173,6 +174,27 @@ function toggleMenu() {
   }
 }
 
+// FUNÇÃO PARA VOLTAR AO FEED E SCROLLAR PARA O VÍDEO SELECIONADO
+function irParaVideo(videoId) {
+  // Fecha menu lateral se estiver aberto
+  const menu = document.getElementById('sideProfile');
+  if(menu.classList.contains('open')) toggleMenu();
+
+  // Muda para a tela de feed
+  showScreen('feedScreen');
+
+  // Aguarda um instante para a tela carregar e faz o scroll
+  setTimeout(() => {
+    const elemento = document.getElementById("v-" + videoId);
+    if(elemento) {
+      elemento.scrollIntoView({ behavior: 'smooth' });
+      // Tenta dar play no vídeo selecionado
+      const v = elemento.querySelector('video');
+      if(v) v.play();
+    }
+  }, 100);
+}
+
 // CARREGAR MEU PERFIL (MENU)
 function carregarDadosPerfil() {
   const user = auth.currentUser;
@@ -189,7 +211,11 @@ function carregarDadosPerfil() {
     grid.innerHTML = "";
     snap.forEach(doc => {
       const v = doc.data();
-      grid.innerHTML += `<video class="video-grid-item" src="${v.url}" onclick="this.play()"></video>`;
+      const vid = document.createElement("video");
+      vid.className = "video-grid-item";
+      vid.src = v.url;
+      vid.onclick = () => irParaVideo(doc.id); // <--- AQUI CHAMA A FUNÇÃO
+      grid.appendChild(vid);
     });
   }).catch(e => console.error("Erro nos meus vídeos:", e));
 
@@ -205,13 +231,11 @@ async function visitarPerfil(uid, nome) {
   const grid = document.getElementById('visitGrid');
   grid.innerHTML = "<p style='grid-column: span 3; text-align:center;'>Carregando...</p>";
 
-  // Carrega Foto
   db.collection("usuarios").doc(uid).get().then(doc => {
     if(doc.exists && doc.data().foto) document.getElementById('visitAvatar').src = doc.data().foto;
     else document.getElementById('visitAvatar').src = "https://cdn-icons-png.flaticon.com/512/149/149071.png";
   });
 
-  // Carrega Vídeos (Exige Índice no Firebase)
   db.collection("videos").where("uid", "==", uid).orderBy("data", "desc").get().then(snap => {
     grid.innerHTML = "";
     document.getElementById('visitCountVideos').innerText = snap.size;
@@ -224,7 +248,7 @@ async function visitarPerfil(uid, nome) {
       const vid = document.createElement("video");
       vid.className = "video-grid-item";
       vid.src = v.url;
-      vid.onclick = () => vid.play();
+      vid.onclick = () => irParaVideo(doc.id); // <--- AQUI TAMBÉM
       grid.appendChild(vid);
     });
   }).catch(err => {
@@ -232,7 +256,6 @@ async function visitarPerfil(uid, nome) {
     grid.innerHTML = "<p style='grid-column: span 3; text-align:center; color:red;'>Erro: Verifique o índice no Firebase.</p>";
   });
 
-  // Seguidores
   db.collection("usuarios").doc(uid).collection("seguidores").get().then(snap => {
     document.getElementById('visitCountFollowers').innerText = snap.size;
   });
@@ -249,6 +272,7 @@ function carregarVideos() {
       const v = doc.data();
       const div = document.createElement("div");
       div.className = "video-container";
+      div.id = "v-" + doc.id; // <--- ADICIONADO ID PARA O SCROLL FUNCIONAR
       div.innerHTML = `
         <video src="${v.url}" loop muted playsinline onclick="this.paused ? this.play() : this.pause()"></video>
         <div class="video-overlay">
